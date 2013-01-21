@@ -1,0 +1,70 @@
+Sudo rules:
+
+who    where  =        ( as whom )                  what
+<user> <host> = <tags> (<runas user>:<runas group>) <command1>, <command2>
+
+Hiera YAML:
+
+sudo::rules:
+  <user>:
+    <host>:
+      runas_user: x default: root
+      runas_group: x default: undef
+      command: /path/to/command args
+      passwd: true|false ; default: true
+      noexec: true|false ; default: undef
+
+sudo::aliases::user:
+  <alias>: [ user1, #100 (uid), %group1, %#1 (gid) ]
+
+sudo::aliases::runas:
+  <alias>: [ user1, #100 (uid), %group1, %#1 (gid) ]
+
+sudo::aliases::host:
+  <alias>: [ host1, host2, ALL ]
+
+sudo::aliases::command:
+  <alias>:
+    - '/bin/ls'
+    - '/usr/bin/cat /etc/sudoers'
+    - '/usr/bin/dmesg ""'
+
+
+system::sudo:
+  rules:
+    ...
+  aliases:
+    ...
+
+Examples:
+
+sudo::aliases:user:
+  TOMCAT_USERS: [ tomcat1, tomcat2, tomcat3 ]
+
+sudo::aliases::host:
+  TOMCAT_HOSTS: [ lcyw0001, lcyw00002 ]
+
+sudo::aliases::commands:
+  TOMCAT_COMMANDS:
+    - '/usr/bin/sudo -Hi -u tomcat1 -- *'
+    - '/usr/bin/sudo -Hi -u tomcat2 -- *'
+    - '/usr/bin/sudo -Hi -u tomcat3 -- *'
+ 
+sudo::rules:
+  root:
+    ALL:
+      command: ALL
+      nopasswd: true
+  %wheel:
+    ALL:
+      command: ALL
+      nopasswd: true
+  %sysadmins:
+    ALL:
+      command: ALL
+      nopasswd: false
+  %tomcat:
+    TOMCAT_HOSTS:
+      command: TOMCAT_COMMANDS
+      runas_user: TOMCAT_USERS
+      nopasswd: true
