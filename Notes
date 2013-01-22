@@ -68,3 +68,72 @@ sudo::rules:
       command: TOMCAT_COMMANDS
       runas_user: TOMCAT_USERS
       nopasswd: true
+
+%users,%ops  fs1,fs2=(tomcat)/apps/tomcat/restart.sh, (tomcat) /apps/tomcat/start.sh
+
+augtool> print /files/etc/sudoers/spec[4]
+/files/etc/sudoers/spec[4]
+/files/etc/sudoers/spec[4]/user[1] = "%users"
+/files/etc/sudoers/spec[4]/user[2] = "%ops"
+/files/etc/sudoers/spec[4]/host_group
+/files/etc/sudoers/spec[4]/host_group/host[1] = "fs1"
+/files/etc/sudoers/spec[4]/host_group/host[2] = "fs2"
+/files/etc/sudoers/spec[4]/host_group/command[1] = "/apps/tomcat/restart.sh"
+/files/etc/sudoers/spec[4]/host_group/command[1]/runas_user = "tomcat"
+/files/etc/sudoers/spec[4]/host_group/command[2] = "/apps/tomcat/start.sh"
+/files/etc/sudoers/spec[4]/host_group/command[2]/runas_user = "tomca
+
+%users,%ops  fs1,fs2= (tomcat) NOPASSWD: /apps/tomcat/restart.sh, (tomcat) PASSWD: /apps/tomcat/start.sh
+
+augtool> print /files/etc/sudoers/spec[4]
+/files/etc/sudoers/spec[4]
+/files/etc/sudoers/spec[4]/user[1] = "%users"
+/files/etc/sudoers/spec[4]/user[2] = "%ops"
+/files/etc/sudoers/spec[4]/host_group
+/files/etc/sudoers/spec[4]/host_group/host[1] = "fs1"
+/files/etc/sudoers/spec[4]/host_group/host[2] = "fs2"
+/files/etc/sudoers/spec[4]/host_group/command[1] = "/apps/tomcat/restart.sh"
+/files/etc/sudoers/spec[4]/host_group/command[1]/runas_user = "tomcat"
+/files/etc/sudoers/spec[4]/host_group/command[1]/tag = "NOPASSWD"
+/files/etc/sudoers/spec[4]/host_group/command[2] = "/apps/tomcat/start.sh"
+/files/etc/sudoers/spec[4]/host_group/command[2]/runas_user = "tomcat"
+/files/etc/sudoers/spec[4]/host_group/command[2]/tag = "PASSWD"
+
+sudo::rules:
+  /etc/sudoers:
+    - users:
+        - %users
+        - %ops
+      hosts:
+        - fs1
+        - fs2
+      commands:
+        /apps/tomcat/restart.sh:
+          runas_user: tomcat
+          nopasswd: true
+        /apps/tomcat/start.sh:
+          runas_user: tomcat
+          nopasswd: false
+    - users:
+        - root
+        - %sysadmins
+        - wheel
+      commands:
+        ALL:
+          runas_user: root
+          nopasswd: false
+    - users:
+        - %tomcat
+      hosts:
+        - TOMCAT_HOSTS
+      commands:
+        TOMCAT_COMMANDS:
+          runas_user: TOMCAT_USERS
+          nopasswd: true
+    
+
+manifests/
+  init - reads sudo::rules hash of filename -> file_entries
+    file_entries array of entries
+      entry
+        changes.erb
